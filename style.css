@@ -1,0 +1,21 @@
+#container {
+  text-align: center;
+  width: 500px;
+  margin: 0 auto;
+}
+
+.success {
+  font-weight:bold;
+  font-size:1.2em;
+  color:darkgreen;
+}
+
+.error {
+  font-weight:bold;
+  font-size:1.2em;
+  color:red;
+}
+
+label {
+  display:block;
+}

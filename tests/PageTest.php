@@ -1,21 +1,28 @@
 <?php declare(strict_types=1);
   require 'vendor/autoload.php';
-  require "config.php";
+//  require "config.php";
 
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 
 final class PageTest extends TestCase
 {
+    private $db;
+    private $client;
+
     public function setUp(): void
     {
+      $this->db = "test.csv";
       // clear out any old data
       $this->clearData();
+      $this->client = new GuzzleHttp\Client(['cookies' => true]);
+      $this->client->get('https://guestbook.briantoone.repl.co/test.php');
     }
 
     private function clearData(): void
     {
-      @unlink("test.csv");   
+      echo "deleting {$this->db}!";
+      @unlink($this->db);   
     }
 
     private $testdata = [
@@ -26,15 +33,14 @@ final class PageTest extends TestCase
     // load our test "fixtures" i.e., the data that we can test against
     private function initData(): void
     {
-      file_put_contents("test.csv",implode("\n",$this->testdata));
+      file_put_contents($this->db,implode("\n",$this->testdata));
     }
   
     // look for the text that must always appear on the page
     public function testRequiredTextNoEntries(): void
     {
       // Create a client with a base URI
-      $client = new GuzzleHttp\Client();
-      $response = $client->get('https://guestbook.briantoone.repl.co/?t=1');
+      $response = $this->client->get('https://guestbook.briantoone.repl.co/');
       $body = $response->getBody();
       // Implicitly cast the body to a string and echo it
       // echo $body;
@@ -58,9 +64,7 @@ final class PageTest extends TestCase
     {
       $this->initData();
     
-      // Create a client with a base URI
-      $client = new GuzzleHttp\Client();
-      $response = $client->get('https://guestbook.briantoone.repl.co/?t=1');
+      $response = $this->client->get('https://guestbook.briantoone.repl.co/');
       $body = $response->getBody();
       // Implicitly cast the body to a string and echo it
       //echo $body;
@@ -86,9 +90,8 @@ final class PageTest extends TestCase
     public function testSubmission(): void
     {
       // Create a client with a base URI
-      $client = new GuzzleHttp\Client();
-      $response = $client->request('POST', 
-        'https://guestbook.briantoone.repl.co/process.php?t=1', [
+      $response = $this->client->request('POST', 
+        'https://guestbook.briantoone.repl.co/process.php', [
         'allow_redirects' => false,
         'form_params' => [
           'name' => 'Test user',
@@ -100,8 +103,7 @@ final class PageTest extends TestCase
 
       // Verify that the response redirects us to the index page displaying a message
       $this->clearData();
-      $client = new GuzzleHttp\Client();
-      $response = $client->request('POST', 
+      $response = $this->client->request('POST', 
         'https://guestbook.briantoone.repl.co/process.php?t=1', [
         'form_params' => [
           'name' => 'Test user',
@@ -110,22 +112,22 @@ final class PageTest extends TestCase
       ]);
       $body = $response->getBody();
       $stringBody = (string) $body;
-      echo $body;
-
     }
 
     public function testDelete() {
-      // global $config;
-      // $client = new GuzzleHttp\Client();
-      // $response = $client->get('https://guestbook.briantoone.repl.co/delete.php?t=1');
-      // $body = $response->getBody();
-      // $stringBody = (string) $body;
+      $response = $this->client->get('https://guestbook.briantoone.repl.co/delete.php');
+      $body = $response->getBody();
+      $stringBody = (string) $body;
       // this makes sure the delete page itself returns nothing
-  //    $this->assertSame("", $stringBody);
+      $this->assertSame("", $stringBody);
       
       // verify that the test database has been cleared completely
-     // $this->assertEquals("", file_get_contents($config['test_db']));
+      $this->assertEquals("", file_get_contents($this->db));
 
-      // make sure that the page 
+      // make sure that the index page is back to saying there are no entries
+      $response = $this->client->get('https://guestbook.briantoone.repl.co/');
+      $body = $response->getBody();
+      $stringBody = (string) $body;
+      $this->assertStringContainsString("There are no current entries", $stringBody);
     }
 }

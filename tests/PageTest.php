@@ -104,7 +104,7 @@ final class PageTest extends TestCase
       // Verify that the response redirects us to the index page displaying a message
       $this->clearData();
       $response = $this->client->request('POST', 
-        'https://guestbook.briantoone.repl.co/process.php?t=1', [
+        'https://guestbook.briantoone.repl.co/process.php', [
         'form_params' => [
           'name' => 'Test user',
           'comment' => 'this is a test comment',

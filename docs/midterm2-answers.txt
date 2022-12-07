@@ -1,3 +1,7 @@
 3-2 No
 3-3 You have to push and pull in replit
 3-10 this is the very last line
+3-12 There is a commit behind the other
+3-13 they are asking if you want it on replit or github
+3-14 Yes. HEAD it Github. main is replit
+3-17 2
